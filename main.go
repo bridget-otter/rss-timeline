@@ -48,6 +48,8 @@ func main() {
 		items = append(items, parsed...)
 	}
 
+	items = dedupeItems(items)
+
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].Published.After(items[j].Published)
 	})

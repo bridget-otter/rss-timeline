@@ -56,6 +56,11 @@ doesn't match prints as "unknown" rather than failing the whole feed.
 If one file in a batch fails to parse, that file is skipped with a warning
 on stderr and the rest are still processed.
 
+If the same item shows up in more than one feed (a post syndicated to both a
+blog feed and a podcast feed, or a feed you listed twice by accident), it's
+only printed once. Items are matched by RSS `guid` or Atom `id` first, and
+by link when no id is present.
+
 ## Building
 
 Standard library only, no external dependencies:

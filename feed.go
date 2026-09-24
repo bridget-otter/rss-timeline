@@ -11,6 +11,7 @@ import (
 type Item struct {
 	Title     string
 	Link      string
+	GUID      string
 	Published time.Time
 	Source    string
 }
@@ -22,6 +23,7 @@ type rssDoc struct {
 		Items []struct {
 			Title   string `xml:"title"`
 			Link    string `xml:"link"`
+			GUID    string `xml:"guid"`
 			PubDate string `xml:"pubDate"`
 		} `xml:"item"`
 	} `xml:"channel"`
@@ -32,6 +34,7 @@ type atomDoc struct {
 	Title   string   `xml:"title"`
 	Entries []struct {
 		Title string `xml:"title"`
+		ID    string `xml:"id"`
 		Links []struct {
 			Href string `xml:"href"`
 			Rel  string `xml:"rel"`
@@ -75,6 +78,7 @@ func parseFeed(data []byte, source string) ([]Item, error) {
 			items = append(items, Item{
 				Title:     it.Title,
 				Link:      it.Link,
+				GUID:      it.GUID,
 				Published: parseTime(it.PubDate),
 				Source:    source,
 			})
@@ -102,6 +106,7 @@ func parseFeed(data []byte, source string) ([]Item, error) {
 			items = append(items, Item{
 				Title:     e.Title,
 				Link:      link,
+				GUID:      e.ID,
 				Published: parseTime(when),
 				Source:    source,
 			})
@@ -124,6 +129,34 @@ var timeLayouts = []string{
 	"Mon, 2 Jan 2006 15:04:05 -0700",
 	"2006-01-02 15:04:05",
 	"2006-01-02",
+}
+
+// dedupeItems drops items that repeat across feeds, which happens when the
+// same post shows up in a podcast feed and its site feed, or a feed is
+// listed twice on the command line. GUID is preferred when present since
+// it's the field publishers use to identify a post across revisions; link
+// is the fallback. Items with neither are kept as-is since we have no way
+// to tell them apart from anything else.
+func dedupeItems(items []Item) []Item {
+	seen := make(map[string]bool, len(items))
+	out := make([]Item, 0, len(items))
+	for _, it := range items {
+		key := ""
+		switch {
+		case it.GUID != "":
+			key = "guid:" + it.GUID
+		case it.Link != "":
+			key = "link:" + it.Link
+		}
+		if key != "" {
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+		}
+		out = append(out, it)
+	}
+	return out
 }
 
 func parseTime(s string) time.Time {
