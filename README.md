@@ -16,7 +16,7 @@ the result in.
 ## Usage
 
 ```
-rss-timeline [-n count] [file ...]
+rss-timeline [-n count] [-oldest] [file ...]
 ```
 
 If no files are given, it reads from stdin. Use `-` as a filename to read
@@ -43,7 +43,8 @@ Output is one line per item: timestamp, title, source, link.
 2026-09-12 18:41  Episode 88: caches are hard    [podcast.atom]   https://example.com/ep/88
 ```
 
-`-n 0` prints every item instead of truncating.
+`-n 0` prints every item instead of truncating. Pass `-oldest` to flip the
+sort so the oldest item comes first.
 
 ## Feed support
 

@@ -13,8 +13,9 @@ import (
 
 func main() {
 	n := flag.Int("n", 20, "number of items to show (0 for all)")
+	oldest := flag.Bool("oldest", false, "sort oldest first instead of most recent first")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [-n count] [file ...]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s [-n count] [-oldest] [file ...]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "reads XML feeds from the given files, or from stdin if none are given\n")
 		fmt.Fprintf(os.Stderr, "use \"-\" as a filename to read stdin at that position\n")
 		flag.PrintDefaults()
@@ -51,6 +52,9 @@ func main() {
 	items = dedupeItems(items)
 
 	sort.Slice(items, func(i, j int) bool {
+		if *oldest {
+			return items[i].Published.Before(items[j].Published)
+		}
 		return items[i].Published.After(items[j].Published)
 	})
 
